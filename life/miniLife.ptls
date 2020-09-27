@@ -1,0 +1,44 @@
+
+output =
+  initCells
+  |> iterate(updateCells)
+  |> map(showCells)
+  |> printLines
+
+initCells =
+ [[0 0 0 1 0 0 1 0]
+  [0 0 1 1 1 0 1 0]
+  [0 0 1 0 1 0 0 0]
+  [1 0 1 1 1 0 0 1]
+  [0 1 1 1 0 0 1 0]
+  [1 0 1 1 0 0 0 1]
+  [1 1 1 0 0 1 0 0]
+  [1 1 0 1 1 1 0 1]]
+
+updateCells(cells) =
+  positions
+  |> map(tick(cells))
+  |> toNDArray((8, 8))
+
+positions =
+  for y in range(0, 7)
+  for x in range(0, 7)
+  yield (x, y)
+
+tick(cells, pos) = toInt(live or new) where {
+  live = cells[y][x] == 1 and nbrs in {2, 3}
+  new  = cells[y][x] == 0 and nbrs == 3
+  nbrs = neighborCount(x, y, cells)
+  (x, y) = pos
+}
+
+neighborCount(x, y, cells) = sum(
+  for dx in [-1, 0, 1] 
+  for dy in [-1, 0, 1] 
+  when (dx != 0 or dy != 0)
+  yield getCell(x + dx, y + dy, cells)
+)
+
+getCell(x, y, cells) = cells[y % 8][x % 8]
+
+showCells(cells) = join("\n", cells) + "\n"

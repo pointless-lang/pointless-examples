@@ -1,0 +1,46 @@
+
+export {
+  showInst, makeInstArray
+}
+
+------------------------------------------------------------------------------
+
+showInst(inst) =
+ format("[ {<5} ] {}", [getLabel(inst), argOrBlank(inst)])
+
+argOrBlank(inst) =
+  if is(PtlsTuple, inst) then unwrap(inst) else ""
+
+------------------------------------------------------------------------------
+
+convertJumps(insts) =
+  insts
+  |> filter(notIs(Label))
+  |> map(convertJump(inds))
+  where inds = getLabelInds(insts)
+
+------------------------------------------------------------------------------
+
+convertJump(inds, inst) = cond {
+  case is(Jmp, inst) Jmp(inds[unwrap(inst)])
+  case is(JmpIf, inst) JmpIf(inds[unwrap(inst)])
+  else inst
+}
+
+------------------------------------------------------------------------------
+
+getLabelInds(insts) =
+  insts
+  |> reduce(scanInst, (0, {})) -- keep track of (currentIndex, indexMap)
+  |> at(1) -- return index map
+
+------------------------------------------------------------------------------
+
+scanInst(pair, inst) = 
+  if not is(Label, inst)
+  then (ind + 1, inds)
+  else (ind, newInds)
+  where {
+    newInds = inds with $[unwrap(inst)] = ind
+    (ind, inds) = pair
+  }
